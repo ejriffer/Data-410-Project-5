@@ -43,7 +43,7 @@ For all of the following regularization techniques KFold validation was used in 
 
 ### Ridge
 
-The follwing function runs KFold validation on the data. This function *DoKFold_SK_FULL* is used for Ridge, LASSO, and ElasticNet. 
+The follwing function runs KFold validation on the data. This function DoKFold_SK_FULL is used for Ridge, LASSO, and ElasticNet. 
 
 ```
 def DoKFold_SK_FULL(X,y,model,k):
@@ -68,6 +68,37 @@ def DoKFold_SK_FULL(X,y,model,k):
           'avg RMSE:', np.mean(PE),
           'avg L2 distance:', np.mean(L2))
 ```
+
+Before we run the Ridge regularization we need to find the best/most accurate *alpha* hyperparameter value for this specific technique. This can be done in a multitude of ways including GridSearchCV, or with a simple for loop. THe following code shows the tuning of the *alpha* hyperparameter. 
+
+(The DoKFold_SK_pe function is the same as the DoKFold_SK_FULL as shown above but only returns the avg RMSE.)
+
+```
+# Find the best RIDGE alpha value
+alpha = np.arange(0.01,2,0.001)
+# pe = prediction error
+PE = []
+for a in alpha:
+  model = Ridge(alpha=a,fit_intercept = False,max_iter=5000) 
+  PE.append(DoKFold_SK_pe(x,y,model,10))
+ alpha[np.argmin(PE)]
+```
+
+Running the above code we see that the best *alpha* value for Ridge is 0.01. We then run the DoKFold_SK_Full to see how Ridge performs. 
+
+```
+model = Ridge(alpha = 0.01, fit_intercept = False, max_iter = 10000)
+DoKFold_SK_FULL(x,y,model,100)
+```
+
+The above code outputs:
+
+('avg num of 0:',
+ 27.0,
+ 'avg RMSE:',
+ 5.068442072527193,
+ 'avg L2 distance:',
+ 3.0034425668074736)
 
 ### LASSO
 
