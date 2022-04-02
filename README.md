@@ -131,6 +131,135 @@ The above code outputs:
  
 ### ElasticNet
 
+Like Ridge and LASSO the first step for ElasticNet is to find the best *alpha* hyperparameter value. The code is very similar to above.
+
+```
+alpha = np.arange(0.01,2,0.001)
+# pe = prediction error
+PE = []
+for a in alpha:
+  model = ElasticNet(alpha=a,fit_intercept = False,max_iter=5000) 
+  PE.append(DoKFold_SK_pe(x,y,model,10))
+alpha[np.argmin(PE)]
+```
+
+Running the above code we see that the best *alpha* value for ElasticNet is 0.1269. We then run the DoKFold_SK_Full to see how ElasticNet performs. 
+
+```
+model = ElasticNet(alpha = 0.1269, fit_intercept = False, max_iter = 10000)
+DoKFold_SK_FULL(x,y,model,100)
+```
+
+The above code outputs:
+
+('avg num of 0:',
+ 25.32,
+ 'avg RMSE:',
+ 3.4403095071645513,
+ 'avg L2 distance:',
+ 2.5332132230042226)
+
 ### SCAD
+
+SCAD (or smoothly ciplled absolute deviation) is another regularization technique that attempts to alleviate bias issues that can arrise from the ones seen above. The code below shows how to impelement SCAD as well as a KFold validation function similar to the one used for 3 techniques seen above.
+
+```
+# SCAD
+
+@jit
+def scad_penalty(beta_hat, lambda_val, a_val):
+    is_linear = (np.abs(beta_hat) <= lambda_val)
+    is_quadratic = np.logical_and(lambda_val < np.abs(beta_hat), np.abs(beta_hat) <= a_val * lambda_val)
+    is_constant = (a_val * lambda_val) < np.abs(beta_hat)
+    
+    linear_part = lambda_val * np.abs(beta_hat) * is_linear
+    quadratic_part = (2 * a_val * lambda_val * np.abs(beta_hat) - beta_hat**2 - lambda_val**2) / (2 * (a_val - 1)) * is_quadratic
+    constant_part = (lambda_val**2 * (a_val + 1)) / 2 * is_constant
+    return linear_part + quadratic_part + constant_part
+    
+def scad_derivative(beta_hat, lambda_val, a_val):
+    return lambda_val * ((beta_hat <= lambda_val) + (a_val * lambda_val - beta_hat)*((a_val * lambda_val - beta_hat) > 0) / ((a_val - 1) * lambda_val) * (beta_hat > lambda_val))
+
+def scad_model(X,y,lam,a):
+  n = X.shape[0]
+  p = X.shape[1]
+  # we add aan extra columns of 1 for the intercept
+  #X = np.c_[np.ones((n,1)),X]
+  def scad(beta):
+    beta = beta.flatten()
+    beta = beta.reshape(-1,1)
+    n = len(y)
+    return 1/n*np.sum((y-X.dot(beta))**2) + np.sum(scad_penalty(beta,lam,a))
+  
+  def dscad(beta):
+    beta = beta.flatten()
+    beta = beta.reshape(-1,1)
+    n = len(y)
+    return np.array(-2/n*np.transpose(X).dot(y-X.dot(beta))+scad_derivative(beta,lam,a)).flatten()
+  b0 = np.ones((p,1))
+  output = minimize(scad, b0, method='L-BFGS-B', jac=dscad,options={'gtol': 1e-8, 'maxiter': 1e7,'maxls': 25,'disp': True})
+  return output.x
+  
+def scad_predict(X,y,lam,a):
+  beta_scad = scad_model(X,y,lam,a)
+  n = X.shape[0]
+  p = X.shape[1]
+  # we add aan extra columns of 1 for the intercept
+  X = np.c_[np.ones((n,1)),X]
+  return X.dot(beta_scad)
+  
+def DoKFoldScad_FULL(X,y,lam,a,k):
+  avg_pos = []
+  PE = []
+  L2 = []
+  kf = KFold(n_splits=k,shuffle=True,random_state=1234)
+  for idxtrain, idxtest in kf.split(X):
+    X_train = X[idxtrain,:]
+    y_train = y[idxtrain]
+    X_test  = X[idxtest,:]
+    y_test  = y[idxtest]
+    beta_scad = scad_model(X_train,y_train,lam,a)
+    n = X_test.shape[0]
+    p = X_test.shape[1]
+    # we add an extra columns of 1 for the intercept
+    #X1_test = np.c_[np.ones((n,1)),X_test]
+    yhat_scad = X_test.dot(beta_scad)
+    PE.append(MSE(y_test,yhat_scad))
+
+    pos = np.where(beta_star != 0)
+    pos_model = np.where(beta_scad != 0)
+    avg_pos.append(np.intersect1d(pos,pos_model).shape[0])
+    L2.append(norm(np.array(beta_star)-np.array(beta_scad)))
+
+  return ('avg num of 0:', np.mean(avg_pos), 
+          'avg RMSE:', np.mean(PE),
+          'avg L2 distance:', np.mean(L2))
+```
+
+Like the above regularization techniques SCAD has an *alpha* hyperparameter that needs to be optimized, but SCAD also has a second important hyperparameter *lambda*.
+
+```
+alpha = np.arange(0.01,2,0.01)
+lambd = np.arange(0.01,2,0.01)
+# pe = prediction error
+PE = []
+for a,l in zip(alpha, lambd): 
+  PE.append(DoKFoldScad(x,y,l,a,10))
+print('alpha:',alpha[np.argmin(PE)])
+print('lambda:',lambd[np.argmin(PE)])
+```
+
+The above code shows that the optimal *alpha* value is 0.88 and the optimal *lambda* value is 0.88. We then run the DoKFoldScad_Full to see how SCAD performs. 
+
+`DoKFoldScad_FULL(x,y,0.88,0.88,100)`
+
+The above code outputs:
+
+('avg num of 0:',
+ 27.0,
+ 'avg RMSE:',
+ 74.31705501598313,
+ 'avg L2 distance:',
+ 7.544019557110627)
 
 ### Square Root LASSO
