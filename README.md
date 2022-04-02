@@ -324,7 +324,7 @@ The above code outputs:
  'avg L2 distance:',
  4.362843493451054)
  
- ## Comparison
+## Comparison
  
 Comparing all the above techniques we see that Ridge, SCAD, and Square Root LASSO all accurately estimate 27 of the ![CodeCogsEqn-13](https://user-images.githubusercontent.com/74326062/161394514-f8042141-edfc-451d-a37d-8c397fb79a34.svg) values that are 0. ElasticNet is just below at 25.32, and LASSO only correctly identifies 20.89 of the ![CodeCogsEqn-13](https://user-images.githubusercontent.com/74326062/161394555-428785e5-ff59-42bd-8ec8-f8d6cf346458.svg) 0 values.
 
