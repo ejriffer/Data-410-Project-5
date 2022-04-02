@@ -39,9 +39,35 @@ y = y.reshape(-1,1)
 
 The points of comparison between the different regularization techniques include the acerage number of true non-zero coefficients, the L2 (Eucledian) distance to the ideal solution and the root mean squared error (RMSE). 
 
+For all of the following regularization techniques KFold validation was used in order to ensure coefficients, L2 distance and RMSE were as close to the actual value as possible and not due to a certain data split.
+
 ### Ridge
 
+The follwing function runs KFold validation on the data. This function *DoKFold_SK_FULL* is used for Ridge, LASSO, and ElasticNet. 
 
+```
+def DoKFold_SK_FULL(X,y,model,k):
+  avg_pos = []
+  PE = []
+  L2 = []
+  kf = KFold(n_splits=k,shuffle=True,random_state=1234)
+  for idxtrain, idxtest in kf.split(X):
+    X_train = X[idxtrain,:]
+    y_train = y[idxtrain]
+    X_test  = X[idxtest,:]
+    y_test  = y[idxtest]
+    model.fit(X_train,y_train)
+    beta_hat = model.coef_
+    pos = np.where(beta_star != 0)
+    pos_model = np.where(beta_hat != 0)
+    avg_pos.append(np.intersect1d(pos,pos_model).shape[0])
+    yhat_test = model.predict(X_test)
+    PE.append(np.sqrt(MSE(y_test,yhat_test)))
+    L2.append(norm(np.array(beta_star)-np.array(beta_hat)))
+  return ('avg num of 0:', np.mean(avg_pos), 
+          'avg RMSE:', np.mean(PE),
+          'avg L2 distance:', np.mean(L2))
+```
 
 ### LASSO
 
