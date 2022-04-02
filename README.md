@@ -161,7 +161,7 @@ The above code outputs:
 
 ### SCAD
 
-SCAD (or smoothly ciplled absolute deviation) is another regularization technique that attempts to alleviate bias issues that can arrise from the ones seen above. The code below shows how to impelement SCAD as well as a KFold validation function similar to the one used for 3 techniques seen above.
+SCAD (or smoothly clipped absolute deviation) is another regularization technique that attempts to alleviate bias issues that can arrise from the ones seen above. The code below shows how to impelement SCAD as well as a KFold validation function similar to the one used for 3 techniques seen above.
 
 ```
 # SCAD
@@ -251,7 +251,9 @@ print('lambda:',lambd[np.argmin(PE)])
 
 The above code shows that the optimal *alpha* value is 0.88 and the optimal *lambda* value is 0.88. We then run the DoKFoldScad_Full to see how SCAD performs. 
 
-`DoKFoldScad_FULL(x,y,0.88,0.88,100)`
+```
+DoKFoldScad_FULL(x,y,0.88,0.88,100)
+```
 
 The above code outputs:
 
@@ -263,3 +265,33 @@ The above code outputs:
  7.544019557110627)
 
 ### Square Root LASSO
+
+The last regularization technique that we will be comparing is Square Root LASSO. This is a modification of the LASSO technique seen above that can estimate high-dimension, sparse models where regular LASSO might have more trouble. The below code runs a Square Root LASSO KFold validation. 
+
+```
+# SQRT LASSO
+
+def DoKFoldSqrtLasso(X,y,alpha,k):
+  avg_pos = []
+  PE = []
+  L2 = []
+  kf = KFold(n_splits=k,shuffle=True,random_state=1234)
+  for idxtrain, idxtest in kf.split(X):
+    X_train = X[idxtrain,:]
+    y_train = y[idxtrain]
+    X_test  = X[idxtest,:]
+    y_test  = y[idxtest]
+    model = sm.OLS(y_train,X_train)
+    result = model.fit_regularized(method='sqrt_lasso', alpha=alpha)
+    yhat_test = result.predict(X_test)
+    PE.append(MSE(y_test,yhat_test))
+
+    beta_sqrt = result.params
+    pos = np.where(beta_star != 0)
+    pos_model = np.where(beta_sqrt != 0)
+    avg_pos.append(np.intersect1d(pos,pos_model).shape[0])
+    L2.append(norm(np.array(beta_star)-np.array(beta_sqrt)))
+  return ('avg num of 0:', np.mean(avg_pos), 
+          'avg RMSE:', np.mean(PE),
+          'avg L2 distance:', np.mean(L2))
+```
