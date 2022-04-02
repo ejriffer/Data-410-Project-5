@@ -35,7 +35,7 @@ y = np.matmul(x,beta_star) + sigma*np.random.normal(0,1,n)
 y = y.reshape(-1,1)
 ```
 
-## Comparison
+## Regularization Techniques
 
 The points of comparison between the different regularization techniques include the acerage number of true non-zero coefficients, the L2 (Eucledian) distance to the ideal solution and the root mean squared error (RMSE). 
 
@@ -295,3 +295,35 @@ def DoKFoldSqrtLasso(X,y,alpha,k):
           'avg RMSE:', np.mean(PE),
           'avg L2 distance:', np.mean(L2))
 ```
+
+Like the above regularization techniques Square Root Lasso has an *alpha* hyperparameter that needs to be optimized before running the full function. This technique takes a longer time to run in python, so the number of *alpha* values cycled through was smaller. 
+
+```
+alpha = np.arange(0.1,2,0.1)
+# pe = prediction error
+PE = []
+for a in alpha:
+  #model = sm.OLS(y,x)
+  #result = model.fit_regularized(method='sqrt_lasso', alpha=a) 
+  PE.append(DoKFoldSqrtLasso(x,y,a,2))
+alpha[np.argmin(PE)]
+```
+
+The above code shows that the optimal *alpha* value is 0.1. We then run the DoKFoldSqrtLasso to see how it performs with this hyperparameter value.
+
+```
+DoKFoldSqrtLasso(x,y,0.1,2)
+```
+
+The above code outputs:
+
+('avg num of 0:',
+ 27.0,
+ 'avg RMSE:',
+ 22.39317941123769,
+ 'avg L2 distance:',
+ 4.362843493451054)
+ 
+ ## Comparison
+ 
+ Comparing all the above techniques we see that 
