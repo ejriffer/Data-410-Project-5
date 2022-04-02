@@ -102,6 +102,33 @@ The above code outputs:
 
 ### LASSO
 
+Like Ridge, the first step for LASSO is to find the best *alpha* hyperparameter value. The code is very similar to Ridge.
+
+```
+alpha = np.arange(0.01,2,0.001)
+# pe = prediction error
+PE = []
+for a in alpha:
+  model = Lasso(alpha=a,fit_intercept = False, max_iter=5000) 
+  PE.append(DoKFold_SK_pe(x,y,model,10))
+alpha[np.argmin(PE)]
+```
+
+Running the above code we see that the best *alpha* value for LASSO is 0.1759. We then run the DoKFold_SK_Full to see how LASSO performs. 
+
+```
+model = Lasso(alpha = 0.1759, fit_intercept = False, max_iter = 10000)
+DoKFold_SK_FULL(x,y,model,100)
+```
+The above code outputs:
+
+('avg num of 0:',
+ 20.89,
+ 'avg RMSE:',
+ 3.3828730256081316,
+ 'avg L2 distance:',
+ 3.7209964150325554)
+ 
 ### ElasticNet
 
 ### SCAD
