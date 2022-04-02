@@ -326,4 +326,10 @@ The above code outputs:
  
  ## Comparison
  
- Comparing all the above techniques we see that 
+Comparing all the above techniques we see that Ridge, SCAD, and Square Root LASSO all accurately estimate 27 of the ![CodeCogsEqn-13](https://user-images.githubusercontent.com/74326062/161394514-f8042141-edfc-451d-a37d-8c397fb79a34.svg) values that are 0. ElasticNet is just below at 25.32, and LASSO only correctly identifies 20.89 of the ![CodeCogsEqn-13](https://user-images.githubusercontent.com/74326062/161394555-428785e5-ff59-42bd-8ec8-f8d6cf346458.svg) 0 values.
+
+ElasticNet has the lowest L2 (Euclidean) Distance (or the distance between the actual and estimated ![CodeCogsEqn-13](https://user-images.githubusercontent.com/74326062/161394722-ca34deca-af65-4348-8e2a-dff6aab5ad8c.svg))at 2.53, Ridge comes in at 3.00, and LASSO just above that at 3.72. Square Root LASSO is next at 4.36, and SCAD has the highest average L2 Distance at 7.54. 
+
+LASSO has the lowest average RMSE value at 3.38, ElasticNet is just above at 3.44, and Ridge comes in just above that at 5.06. There is a big jump between ElasticNet and Square Root LASSO, the next highest at 22.39, and an even bigger jump to SCAD that comes in at 74.31. 
+
+So, we can see that overall Ridge, LASSO, and ElasticNet seem to out perform SCAD and Square Root LASSO.
