@@ -69,7 +69,7 @@ def DoKFold_SK_FULL(X,y,model,k):
           'avg L2 distance:', np.mean(L2))
 ```
 
-Before we run the Ridge regularization we need to find the best/most accurate *alpha* hyperparameter value for this specific technique. This can be done in a multitude of ways including GridSearchCV, or with a simple for loop. THe following code shows the tuning of the *alpha* hyperparameter. 
+Before we run the Ridge regularization we need to find the best/most accurate *alpha* hyperparameter value for this specific technique. This can be done in a multitude of ways including GridSearchCV, or with a simple for loop. The following code shows the tuning of the *alpha* hyperparameter. 
 
 (The DoKFold_SK_pe function is the same as the DoKFold_SK_FULL as shown above but only returns the avg RMSE.)
 
